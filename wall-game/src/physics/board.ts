@@ -54,9 +54,10 @@ export class GameBoard {
 
   public generatePegGrid(width: number, height: number, rows: number, cols: number): PegConfig[] {
     const pegs: PegConfig[] = [];
-    const xSpacing = width / (cols + 1); // равномерное распределение по всей ширине
+    const xSpacing = (width - 40) / (cols - 1); // распределение с учетом крайних штырьков
     const ySpacing = (height - 160) / rows; 
     const startY = 100; 
+    const startX = 30; // начальная позиция близко к краю
 
     for (let row = 0; row < rows; row++) {
       // Шахматное расположение: нечетные ряды смещены на половину интервала
@@ -65,11 +66,11 @@ export class GameBoard {
       const colsInRow = isEvenRow ? cols : cols - 1;
       
       for (let col = 0; col < colsInRow; col++) {
-        const x = xSpacing + col * xSpacing + rowOffset;
+        const x = startX + col * xSpacing + rowOffset;
         const y = startY + row * ySpacing;
         
-        // Штырьки покрывают всю ширину стены с минимальными отступами
-        if (x > 25 && x < width - 25) {
+        // Штырьки от края до края с безопасными границами
+        if (x >= 25 && x <= width - 25) {
           pegs.push({ x, y });
         }
       }

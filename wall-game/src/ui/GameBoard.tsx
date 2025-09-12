@@ -79,6 +79,8 @@ export const GameBoardComponent: React.FC = () => {
     pegGrid.forEach(peg => {
       const pegBody = Matter.Bodies.polygon(peg.x, peg.y, 4, 6, {
         isStatic: true,
+        restitution: 0.95, // очень высокий отскок от штырьков
+        friction: 0.001,   // минимальное трение штырьков
         render: { 
           fillStyle: '#ff6b35',
           strokeStyle: '#f7931e',
@@ -197,10 +199,10 @@ export const GameBoardComponent: React.FC = () => {
     // Добавляем шар в мир
     Matter.World.add(engineRef.current.world, ball.getBody());
     
-    // Запускаем шар с небольшой случайной силой для непредсказуемости (еще медленнее)
-    const randomX = (Math.random() - 0.5) * 0.0002; // еще меньше случайности по X
-    const baseY = 0.0008; // еще меньше начальная сила вниз 
-    const randomY = baseY + (Math.random() - 0.5) * 0.00015; // небольшая вариация по Y
+    // Запускаем шар с небольшой случайной силой для непредсказуемости
+    const randomX = (Math.random() - 0.5) * 0.0004; // больше случайности для отскока
+    const baseY = 0.0012; // немного больше начальная сила 
+    const randomY = baseY + (Math.random() - 0.5) * 0.0003; // больше вариации
     
     Matter.Body.applyForce(ball.getBody(), ball.getBody().position, { x: randomX, y: randomY });
   };
