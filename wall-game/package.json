@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
-    "vercel-build": "npm run build"
+    "vercel-build": "npm install && npm run build"
   },
   "dependencies": {
     "@types/matter-js": "^0.20.0",
