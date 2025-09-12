@@ -5,8 +5,6 @@ import type { GameConfig } from '../game/state';
 import type { Question, QuestionManager } from '../data/questions';
 import { initialQuestions } from '../data/questions';
 import { QuestionModal } from './QuestionModal';
-import { GameBoard as PlinkoBoard } from '../physics/board';
-import { GameBall } from '../physics/ball';
 import { GameManager as GameManagerClass } from '../game/state';
 import { QuestionManager as QuestionManagerClass } from '../data/questions';
 
@@ -55,15 +53,6 @@ export const GameBoardComponent: React.FC = () => {
       }
     });
     renderRef.current = render;
-
-    const pegGrid = new PlinkoBoard(GAME_CONFIG.width, GAME_CONFIG.height, []).generatePegGrid(
-      GAME_CONFIG.width, 
-      GAME_CONFIG.height, 
-      GAME_CONFIG.rows, 
-      GAME_CONFIG.cols
-    );
-
-    const board = new PlinkoBoard(GAME_CONFIG.width, GAME_CONFIG.height, pegGrid);
 
     Matter.Render.run(render);
     const runner = Matter.Runner.create();

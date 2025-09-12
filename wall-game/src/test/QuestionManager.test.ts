@@ -1,5 +1,4 @@
 import { describe, it, expect } from 'vitest';
-import type { QuestionManager } from '../data/questions';
 import type { Question } from '../data/questions';
 import { QuestionManager as QuestionManagerClass } from '../data/questions';
 
