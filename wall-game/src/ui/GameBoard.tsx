@@ -48,9 +48,9 @@ export const GameBoardComponent: React.FC = () => {
     if (!sceneRef.current) return;
 
     const engine = Matter.Engine.create();
-    // Настраиваем гравитацию для лучшего падения (замедлено в полтора раза)
+    // Настраиваем гравитацию для медленного падения
     engine.world.gravity.y = 1;
-    engine.world.gravity.scale = 0.00067;
+    engine.world.gravity.scale = 0.0004;
     engineRef.current = engine;
 
     // Создаем физическую доску с штырьками
@@ -197,10 +197,10 @@ export const GameBoardComponent: React.FC = () => {
     // Добавляем шар в мир
     Matter.World.add(engineRef.current.world, ball.getBody());
     
-    // Запускаем шар с небольшой случайной силой для непредсказуемости (замедленно)
-    const randomX = (Math.random() - 0.5) * 0.00033; // меньше случайности по X
-    const baseY = 0.00133; // меньше начальная сила вниз 
-    const randomY = baseY + (Math.random() - 0.5) * 0.0002; // небольшая вариация по Y
+    // Запускаем шар с небольшой случайной силой для непредсказуемости (еще медленнее)
+    const randomX = (Math.random() - 0.5) * 0.0002; // еще меньше случайности по X
+    const baseY = 0.0008; // еще меньше начальная сила вниз 
+    const randomY = baseY + (Math.random() - 0.5) * 0.00015; // небольшая вариация по Y
     
     Matter.Body.applyForce(ball.getBody(), ball.getBody().position, { x: randomX, y: randomY });
   };
