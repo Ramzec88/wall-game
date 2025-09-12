@@ -13,8 +13,8 @@ import { GameBall } from '../physics/ball';
 const GAME_CONFIG: GameConfig = {
   width: 800,
   height: 600,
-  rows: 7,
-  cols: 7,
+  rows: 12,
+  cols: 14,
   exits: [
     { id: 'e1', points: 100 },
     { id: 'e2', points: 200 },
@@ -78,8 +78,8 @@ export const GameBoardComponent: React.FC = () => {
       const pegBody = Matter.Bodies.polygon(peg.x, peg.y, 4, 8, {
         isStatic: true,
         render: { 
-          fillStyle: '#ff6b6b',
-          strokeStyle: '#ff5252',
+          fillStyle: '#ff6b35',
+          strokeStyle: '#f7931e',
           lineWidth: 2
         },
         angle: Math.PI / 4, // поворот на 45 градусов для ромба
@@ -99,8 +99,8 @@ export const GameBoardComponent: React.FC = () => {
         isSensor: true,
         isStatic: true,
         render: { 
-          fillStyle: '#4facfe',
-          strokeStyle: '#00f2fe',
+          fillStyle: '#00f5ff',
+          strokeStyle: '#0099cc',
           lineWidth: 3
         },
         label: `exit-${exit.id}`
@@ -188,7 +188,7 @@ export const GameBoardComponent: React.FC = () => {
     const entryX = entryWidth * entryIndex + entryWidth / 2;
     const entryY = 50;
     
-    const ball = new GameBall(entryX, entryY, 16, '#f093fb');
+    const ball = new GameBall(entryX, entryY, 16, '#39ff14');
     ball.getBody().label = 'ball';
     currentBallRef.current = ball;
     
