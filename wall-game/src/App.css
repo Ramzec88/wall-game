@@ -1,13 +1,17 @@
 :root {
-  --primary-color: #3498db;
-  --secondary-color: #2ecc71;
-  --background-color: #f4f4f4;
-  --text-color: #333;
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  --background-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --card-gradient: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
+  --text-color: #2d3748;
+  --text-light: #4a5568;
 }
 
 body {
-  font-family: 'Arial', sans-serif;
-  background-color: var(--background-color);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: var(--background-gradient);
   margin: 0;
   padding: 0;
   display: flex;
@@ -19,17 +23,30 @@ body {
 .app {
   width: 100%;
   max-width: 900px;
-  background-color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
+  background: var(--card-gradient);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 8px 20px rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
   overflow: hidden;
+  backdrop-filter: blur(10px);
 }
 
 header {
-  background-color: var(--primary-color);
+  background: var(--primary-gradient);
   color: white;
   text-align: center;
-  padding: 1rem;
+  padding: 2rem;
+  position: relative;
+}
+
+header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+  pointer-events: none;
 }
 
 main {
@@ -57,18 +74,33 @@ main {
 }
 
 .entry-buttons button {
-  background-color: var(--secondary-color);
+  background: var(--secondary-gradient);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 5px;
+  padding: 0.75rem 1.5rem;
+  border-radius: 15px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.entry-buttons button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
+}
+
+.entry-buttons button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .entry-buttons button:disabled {
-  background-color: #bdc3c7;
+  background: linear-gradient(135deg, #a0a0a0 0%, #808080 100%);
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .game-board-container {
@@ -79,8 +111,12 @@ main {
 .game-scene {
   width: 800px;
   height: 600px;
-  border: 2px solid var(--primary-color);
-  border-radius: 5px;
+  border: 3px solid transparent;
+  border-radius: 15px;
+  background: 
+    linear-gradient(#1a1a2e, #1a1a2e) padding-box,
+    var(--accent-gradient) border-box;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 .exit-labels {
@@ -97,13 +133,15 @@ main {
 .exit-label {
   position: absolute;
   transform: translateX(-50%);
-  background-color: rgba(255, 255, 255, 0.9);
-  color: var(--text-color);
-  padding: 5px 10px;
-  border-radius: 15px;
+  background: var(--success-gradient);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
   font-weight: bold;
   font-size: 14px;
-  border: 2px solid var(--primary-color);
+  box-shadow: 0 4px 15px rgba(67, 233, 123, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(5px);
 }
 
 .question-modal {

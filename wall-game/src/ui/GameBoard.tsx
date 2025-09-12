@@ -46,9 +46,9 @@ export const GameBoardComponent: React.FC = () => {
     if (!sceneRef.current) return;
 
     const engine = Matter.Engine.create();
-    // Настраиваем гравитацию для лучшего падения
+    // Настраиваем гравитацию для лучшего падения (замедлено в полтора раза)
     engine.world.gravity.y = 1;
-    engine.world.gravity.scale = 0.001;
+    engine.world.gravity.scale = 0.00067;
     engineRef.current = engine;
 
     // Создаем физическую доску с штырьками
@@ -58,7 +58,7 @@ export const GameBoardComponent: React.FC = () => {
     // Создаем границы мира
     const wallOptions: Matter.IChamferableBodyDefinition = {
       isStatic: true,
-      render: { fillStyle: '#2E2E2E' },
+      render: { fillStyle: '#1a1a2e' },
       chamfer: { radius: 0 }
     };
 
@@ -77,7 +77,11 @@ export const GameBoardComponent: React.FC = () => {
     pegGrid.forEach(peg => {
       const pegBody = Matter.Bodies.polygon(peg.x, peg.y, 4, 8, {
         isStatic: true,
-        render: { fillStyle: '#FFFFFF' },
+        render: { 
+          fillStyle: '#ff6b6b',
+          strokeStyle: '#ff5252',
+          lineWidth: 2
+        },
         angle: Math.PI / 4, // поворот на 45 градусов для ромба
         chamfer: { radius: 0 }
       });
@@ -95,9 +99,9 @@ export const GameBoardComponent: React.FC = () => {
         isSensor: true,
         isStatic: true,
         render: { 
-          fillStyle: '#e74c3c',
-          strokeStyle: '#fff',
-          lineWidth: 2
+          fillStyle: '#4facfe',
+          strokeStyle: '#00f2fe',
+          lineWidth: 3
         },
         label: `exit-${exit.id}`
       });
@@ -132,9 +136,18 @@ export const GameBoardComponent: React.FC = () => {
           const exitId = exitBody.label?.replace('exit-', '');
           
           if (exitId && currentBallRef.current) {
-            // Убираем шар из мира
-            Matter.World.remove(engine.world, currentBallRef.current.getBody());
-            currentBallRef.current = null;
+            // Фиксируем шар в выходной ячейке (делаем статичным)
+            const ballBody = currentBallRef.current.getBody();
+            const exitIndex = GAME_CONFIG.exits.findIndex(e => e.id === exitId);
+            const exitWidth = GAME_CONFIG.width / GAME_CONFIG.exits.length;
+            const fixedX = exitWidth * exitIndex + exitWidth / 2;
+            const fixedY = GAME_CONFIG.height - 75; // чуть выше выходной ячейки
+            
+            // Позиционируем и фиксируем шар
+            Matter.Body.setPosition(ballBody, { x: fixedX, y: fixedY });
+            Matter.Body.setVelocity(ballBody, { x: 0, y: 0 });
+            Matter.Body.setStatic(ballBody, true);
+            
             setBallDropping(false);
             
             // Обновляем состояние игры
@@ -162,6 +175,12 @@ export const GameBoardComponent: React.FC = () => {
   const handleEntrySelect = (entryIndex: number) => {
     if (ballDropping || !engineRef.current) return;
     
+    // Убираем предыдущий зафиксированный шар, если он есть
+    if (currentBallRef.current) {
+      Matter.World.remove(engineRef.current.world, currentBallRef.current.getBody());
+      currentBallRef.current = null;
+    }
+    
     setBallDropping(true);
     
     // Создаем шар в выбранном входе
@@ -169,17 +188,17 @@ export const GameBoardComponent: React.FC = () => {
     const entryX = entryWidth * entryIndex + entryWidth / 2;
     const entryY = 50;
     
-    const ball = new GameBall(entryX, entryY, 8, '#f39c12');
+    const ball = new GameBall(entryX, entryY, 16, '#f093fb');
     ball.getBody().label = 'ball';
     currentBallRef.current = ball;
     
     // Добавляем шар в мир
     Matter.World.add(engineRef.current.world, ball.getBody());
     
-    // Запускаем шар с небольшой случайной силой для непредсказуемости
-    const randomX = (Math.random() - 0.5) * 0.0005; // больше случайности по X
-    const baseY = 0.002; // больше начальная сила вниз
-    const randomY = baseY + (Math.random() - 0.5) * 0.0003; // небольшая вариация по Y
+    // Запускаем шар с небольшой случайной силой для непредсказуемости (замедленно)
+    const randomX = (Math.random() - 0.5) * 0.00033; // меньше случайности по X
+    const baseY = 0.00133; // меньше начальная сила вниз 
+    const randomY = baseY + (Math.random() - 0.5) * 0.0002; // небольшая вариация по Y
     
     Matter.Body.applyForce(ball.getBody(), ball.getBody().position, { x: randomX, y: randomY });
   };
