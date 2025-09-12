@@ -57,7 +57,7 @@ export class GameBoard {
     const xSpacing = (width - 40) / (cols - 1); // распределение с учетом крайних штырьков
     const ySpacing = (height - 160) / rows; 
     const startY = 100; 
-    const startX = 30; // начальная позиция близко к краю
+    const startX = 40; // сдвигаем правее на 10px
 
     for (let row = 0; row < rows; row++) {
       // Шахматное расположение: нечетные ряды смещены на половину интервала
