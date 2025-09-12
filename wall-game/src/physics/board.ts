@@ -54,22 +54,22 @@ export class GameBoard {
 
   public generatePegGrid(width: number, height: number, rows: number, cols: number): PegConfig[] {
     const pegs: PegConfig[] = [];
-    const xSpacing = width / cols;
-    const ySpacing = (height - 140) / rows; // учитываем область для выходов
-    const startY = 80; // отступ сверху
+    const xSpacing = width / (cols - 1); // увеличиваем расстояние
+    const ySpacing = (height - 160) / rows; // увеличиваем расстояние по Y
+    const startY = 100; // больше отступ сверху
 
     for (let row = 0; row < rows; row++) {
       // Шахматное расположение: нечетные ряды смещены на половину интервала
       const isEvenRow = row % 2 === 0;
       const rowOffset = isEvenRow ? 0 : xSpacing / 2;
-      const colsInRow = isEvenRow ? cols : cols - 1;
+      const colsInRow = isEvenRow ? cols - 2 : cols - 3; // меньше колонок для больших расстояний
       
       for (let col = 0; col < colsInRow; col++) {
         const x = xSpacing / 2 + col * xSpacing + rowOffset;
         const y = startY + row * ySpacing;
         
         // Проверяем, что штырек не слишком близко к краям
-        if (x > 30 && x < width - 30) {
+        if (x > 60 && x < width - 60) {
           pegs.push({ x, y });
         }
       }

@@ -13,8 +13,8 @@ import { GameBall } from '../physics/ball';
 const GAME_CONFIG: GameConfig = {
   width: 800,
   height: 600,
-  rows: 12,
-  cols: 14,
+  rows: 8,
+  cols: 10,
   exits: [
     { id: 'e1', points: 100 },
     { id: 'e2', points: 200 },
@@ -25,6 +25,8 @@ const GAME_CONFIG: GameConfig = {
     { id: 'e7', points: 100 }
   ]
 };
+
+const NUM_ENTRIES = 7; // Количество входов фиксировано
 
 export const GameBoardComponent: React.FC = () => {
   const [gameManager] = useState<GameManager>(new GameManagerClass(GAME_CONFIG));
@@ -75,7 +77,7 @@ export const GameBoardComponent: React.FC = () => {
     
     // Создаем штырьки-ромбики  
     pegGrid.forEach(peg => {
-      const pegBody = Matter.Bodies.polygon(peg.x, peg.y, 4, 8, {
+      const pegBody = Matter.Bodies.polygon(peg.x, peg.y, 4, 6, {
         isStatic: true,
         render: { 
           fillStyle: '#ff6b35',
@@ -184,7 +186,7 @@ export const GameBoardComponent: React.FC = () => {
     setBallDropping(true);
     
     // Создаем шар в выбранном входе
-    const entryWidth = GAME_CONFIG.width / GAME_CONFIG.cols;
+    const entryWidth = GAME_CONFIG.width / NUM_ENTRIES;
     const entryX = entryWidth * entryIndex + entryWidth / 2;
     const entryY = 50;
     
@@ -225,7 +227,7 @@ export const GameBoardComponent: React.FC = () => {
   };
 
   const renderEntryButtons = () => {
-    return Array.from({ length: GAME_CONFIG.cols }, (_, index) => (
+    return Array.from({ length: NUM_ENTRIES }, (_, index) => (
       <button 
         key={index} 
         onClick={() => handleEntrySelect(index)}
