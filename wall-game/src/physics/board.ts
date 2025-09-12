@@ -56,12 +56,21 @@ export class GameBoard {
     const pegs: PegConfig[] = [];
     const xSpacing = width / (cols + 1);
     const ySpacing = height / (rows + 1);
+    const startY = ySpacing + 50; // отступ сверху
 
     for (let row = 0; row < rows; row++) {
-      for (let col = 0; col < cols; col++) {
-        const x = xSpacing * (col + 1);
-        const y = ySpacing * (row + 1);
-        pegs.push({ x, y });
+      // Каждый ряд смещается на половину интервала для шахматного порядка
+      const colsInRow = cols - Math.floor(row / 2);
+      const rowOffset = (row % 2) * (xSpacing / 2);
+      
+      for (let col = 0; col < colsInRow; col++) {
+        const x = xSpacing * (col + 1) + rowOffset;
+        const y = startY + ySpacing * row;
+        
+        // Проверяем, что штырек не слишком близко к краям
+        if (x > 50 && x < width - 50) {
+          pegs.push({ x, y });
+        }
       }
     }
 

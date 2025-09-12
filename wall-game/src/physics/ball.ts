@@ -5,8 +5,10 @@ export class GameBall {
 
   constructor(x: number, y: number, radius: number = 10, color: string = '#FF0000') {
     this.ball = Matter.Bodies.circle(x, y, radius, {
-      restitution: 0.5,
-      friction: 0.1,
+      restitution: 0.7, // увеличиваем отскок
+      friction: 0.05,   // уменьшаем трение
+      frictionAir: 0.01, // добавляем сопротивление воздуха
+      density: 0.001,   // уменьшаем плотность для лучшего отскока
       render: {
         fillStyle: color
       }
