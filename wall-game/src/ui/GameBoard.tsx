@@ -47,9 +47,12 @@ export const GameBoardComponent: React.FC = () => {
   useEffect(() => {
     const initQuestions = async () => {
       try {
+        console.log('Loading questions...');
         const data = await loadQuestions();
+        console.log('Questions loaded:', data);
         setQuestionsData(data);
         setQuestionsLoaded(true);
+        console.log('Questions state updated');
       } catch (error) {
         console.error('Failed to load questions:', error);
       }
@@ -174,9 +177,21 @@ export const GameBoardComponent: React.FC = () => {
             // Обновляем состояние игры
             gameManager.getState().selectedExit = exitId;
             
+            console.log('Ball landed, questionsLoaded:', questionsLoaded, 'questionsData:', questionsData);
+            
             if (questionsLoaded && questionsData) {
               const question = getQuestionForCurrentRound();
+              console.log('Generated question:', question);
               setCurrentQuestion(question);
+            } else {
+              console.log('Questions not loaded yet, retrying in 100ms');
+              setTimeout(() => {
+                if (questionsData) {
+                  const question = getQuestionForCurrentRound();
+                  console.log('Generated question (delayed):', question);
+                  setCurrentQuestion(question);
+                }
+              }, 100);
             }
           }
         }
@@ -195,6 +210,40 @@ export const GameBoardComponent: React.FC = () => {
       exitSensorsRef.current = [];
     };
   }, []);
+
+  // Получение вопроса для текущего раунда
+  const getQuestionForCurrentRound = (): Question | null => {
+    console.log('getQuestionForCurrentRound called, currentRound:', currentRound);
+    console.log('questionsData:', questionsData);
+    
+    if (!questionsData || !questionsData.rounds) {
+      console.log('No questions data available');
+      return null;
+    }
+    
+    const roundKey = currentRound <= 7 ? currentRound.toString() : 'va-bank';
+    console.log('roundKey:', roundKey);
+    
+    const roundQuestions = questionsData.rounds[roundKey];
+    console.log('roundQuestions:', roundQuestions);
+    
+    if (!roundQuestions || roundQuestions.length === 0) {
+      console.log('No questions for round:', roundKey);
+      return null;
+    }
+    
+    // Выбираем случайный вопрос из 50 вопросов раунда
+    const randomIndex = Math.floor(Math.random() * roundQuestions.length);
+    const questionData = roundQuestions[randomIndex];
+    console.log('Selected question data:', questionData);
+    
+    // Конвертируем в наш формат
+    const roundNumber = roundKey === 'va-bank' ? 8 : currentRound;
+    const convertedQuestion = convertToQuestion(questionData, randomIndex, roundNumber);
+    console.log('Converted question:', convertedQuestion);
+    
+    return convertedQuestion;
+  };
 
   const handleEntrySelect = (entryIndex: number) => {
     if (ballDropping || !engineRef.current) return;
@@ -225,24 +274,6 @@ export const GameBoardComponent: React.FC = () => {
     const randomY = baseY + (Math.random() - 0.5) * 0.0003; // больше вариации
     
     Matter.Body.applyForce(ball.getBody(), ball.getBody().position, { x: randomX, y: randomY });
-  };
-
-  // Получение вопроса для текущего раунда
-  const getQuestionForCurrentRound = (): Question | null => {
-    if (!questionsData || !questionsData.rounds) return null;
-    
-    const roundKey = currentRound <= 7 ? currentRound.toString() : 'va-bank';
-    const roundQuestions = questionsData.rounds[roundKey];
-    
-    if (!roundQuestions || roundQuestions.length === 0) return null;
-    
-    // Выбираем случайный вопрос из 50 вопросов раунда
-    const randomIndex = Math.floor(Math.random() * roundQuestions.length);
-    const questionData = roundQuestions[randomIndex];
-    
-    // Конвертируем в наш формат
-    const roundNumber = roundKey === 'va-bank' ? 8 : currentRound;
-    return convertToQuestion(questionData, randomIndex, roundNumber);
   };
 
   const handleQuestionAnswer = (isCorrect: boolean) => {

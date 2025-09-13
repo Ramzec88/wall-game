@@ -78,28 +78,36 @@ export async function loadQuestions(): Promise<QuestionsData> {
 
 // Конвертация вопросов из JSON формата в Question интерфейс
 export function convertToQuestion(roundData: any, index: number, round: number): Question {
+  console.log('convertToQuestion called with:', { roundData, index, round });
+  
   const isVaBank = round === 8; // Ва-банк раунд
   const hasOptions = roundData.options && roundData.options.length > 0;
   
+  console.log('isVaBank:', isVaBank, 'hasOptions:', hasOptions);
+  
   if (isVaBank) {
-    return {
+    const result = {
       id: `r${round}-q${index}`,
       tag: 'va-bank',
-      type: 'text-input',
+      type: 'text-input' as const,
       text: roundData.question,
       correctAnswer: roundData.answer
     };
+    console.log('Va-bank question result:', result);
+    return result;
   } else {
     const correctIndex = hasOptions ? roundData.options.findIndex((opt: string) => opt === roundData.answer) : -1;
     
-    return {
+    const result = {
       id: `r${round}-q${index}`,
       tag: `round-${round}`,
-      type: hasOptions ? 'single' : 'true-false',
+      type: (hasOptions ? 'single' : 'true-false') as const,
       text: roundData.question,
       options: roundData.options,
       correctIndex: correctIndex >= 0 ? correctIndex : 0
     };
+    console.log('Regular question result:', result);
+    return result;
   }
 }
 
