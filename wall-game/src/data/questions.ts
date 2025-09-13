@@ -86,10 +86,10 @@ export function convertToQuestion(roundData: any, index: number, round: number):
   console.log('isVaBank:', isVaBank, 'hasOptions:', hasOptions);
   
   if (isVaBank) {
-    const result = {
+    const result: Question = {
       id: `r${round}-q${index}`,
       tag: 'va-bank',
-      type: 'text-input' as const,
+      type: 'text-input',
       text: roundData.question,
       correctAnswer: roundData.answer
     };
@@ -98,10 +98,10 @@ export function convertToQuestion(roundData: any, index: number, round: number):
   } else {
     const correctIndex = hasOptions ? roundData.options.findIndex((opt: string) => opt === roundData.answer) : -1;
     
-    const result = {
+    const result: Question = {
       id: `r${round}-q${index}`,
       tag: `round-${round}`,
-      type: (hasOptions ? 'single' : 'true-false') as const,
+      type: hasOptions ? 'single' : 'true-false',
       text: roundData.question,
       options: roundData.options,
       correctIndex: correctIndex >= 0 ? correctIndex : 0
