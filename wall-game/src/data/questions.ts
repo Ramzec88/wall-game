@@ -1,10 +1,11 @@
 export interface Question {
   id: string;
   tag: string;
-  type: 'single' | 'true-false';
+  type: 'single' | 'true-false' | 'text-input';
   text: string;
   options?: string[];
-  correctIndex: number;
+  correctIndex?: number;
+  correctAnswer?: string;
 }
 
 export class QuestionManager {
@@ -34,6 +35,11 @@ export class QuestionManager {
     return selectedIndex === question.correctIndex;
   }
 
+  public checkTextAnswer(question: Question, userAnswer: string): boolean {
+    if (!question.correctAnswer) return false;
+    return userAnswer.toLowerCase().trim() === question.correctAnswer.toLowerCase().trim();
+  }
+
   public resetUsedQuestions() {
     this.usedQuestionIds.clear();
   }
@@ -43,30 +49,59 @@ export class QuestionManager {
   }
 }
 
-// Пример начального набора вопросов
-export const initialQuestions: Question[] = [
-  {
-    id: 'q1',
-    tag: 'general',
-    type: 'single',
-    text: 'Какой цвет получают при смешении синего и жёлтого?',
-    options: ['Оранжевый', 'Зелёный', 'Фиолетовый', 'Коричневый'],
-    correctIndex: 1
-  },
-  {
-    id: 'q2',
-    tag: 'general',
-    type: 'true-false',
-    text: 'Столица России - Москва',
-    options: ['Верно', 'Неверно'],
-    correctIndex: 0
-  },
-  {
-    id: 'q3',
-    tag: 'science',
-    type: 'single',
-    text: 'Какая планета ближайшая к Солнцу?',
-    options: ['Марс', 'Венера', 'Меркурий', 'Земля'],
-    correctIndex: 2
+// Интерфейс для загруженных вопросов из JSON
+interface QuestionsData {
+  rounds: {
+    [key: string]: {
+      question: string;
+      options?: string[];
+      answer: string;
+    }[];
+  };
+}
+
+// Загрузка вопросов из JSON файла
+let questionsData: QuestionsData | null = null;
+
+export async function loadQuestions(): Promise<QuestionsData> {
+  if (questionsData) return questionsData;
+  
+  try {
+    const response = await fetch('/questions.json');
+    questionsData = await response.json();
+    return questionsData!;
+  } catch (error) {
+    console.error('Error loading questions:', error);
+    throw error;
   }
-];
+}
+
+// Конвертация вопросов из JSON формата в Question интерфейс
+export function convertToQuestion(roundData: any, index: number, round: number): Question {
+  const isVaBank = round === 8; // Ва-банк раунд
+  const hasOptions = roundData.options && roundData.options.length > 0;
+  
+  if (isVaBank) {
+    return {
+      id: `r${round}-q${index}`,
+      tag: 'va-bank',
+      type: 'text-input',
+      text: roundData.question,
+      correctAnswer: roundData.answer
+    };
+  } else {
+    const correctIndex = hasOptions ? roundData.options.findIndex((opt: string) => opt === roundData.answer) : -1;
+    
+    return {
+      id: `r${round}-q${index}`,
+      tag: `round-${round}`,
+      type: hasOptions ? 'single' : 'true-false',
+      text: roundData.question,
+      options: roundData.options,
+      correctIndex: correctIndex >= 0 ? correctIndex : 0
+    };
+  }
+}
+
+// Пример начального набора вопросов для обратной совместимости
+export const initialQuestions: Question[] = [];

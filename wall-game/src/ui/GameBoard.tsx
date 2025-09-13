@@ -3,7 +3,7 @@ import * as Matter from 'matter-js';
 import type { GameManager } from '../game/state';
 import type { GameConfig } from '../game/state';
 import type { Question, QuestionManager } from '../data/questions';
-import { initialQuestions } from '../data/questions';
+import { loadQuestions, convertToQuestion } from '../data/questions';
 import { QuestionModal } from './QuestionModal';
 import { GameManager as GameManagerClass } from '../game/state';
 import { QuestionManager as QuestionManagerClass } from '../data/questions';
@@ -30,15 +30,32 @@ const NUM_ENTRIES = 7; // Количество входов фиксирован
 
 export const GameBoardComponent: React.FC = () => {
   const [gameManager] = useState<GameManager>(new GameManagerClass(GAME_CONFIG));
-  const [questionManager] = useState<QuestionManager>(new QuestionManagerClass(initialQuestions));
+  const [questionManager] = useState<QuestionManager>(new QuestionManagerClass([]));
+  const [questionsLoaded, setQuestionsLoaded] = useState(false);
+  const [questionsData, setQuestionsData] = useState<any>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [score, setScore] = useState(0);
   const [currentRound, setCurrentRound] = useState(1);
   const [gameOver, setGameOver] = useState(false);
   const [finalRoundMode, setFinalRoundMode] = useState(false);
   const [ballDropping, setBallDropping] = useState(false);
+  const [isVaBankRound, setIsVaBankRound] = useState(false);
 
   const sceneRef = useRef<HTMLDivElement>(null);
+
+  // Загрузка вопросов при старте
+  useEffect(() => {
+    const initQuestions = async () => {
+      try {
+        const data = await loadQuestions();
+        setQuestionsData(data);
+        setQuestionsLoaded(true);
+      } catch (error) {
+        console.error('Failed to load questions:', error);
+      }
+    };
+    initQuestions();
+  }, []);
   const engineRef = useRef<Matter.Engine | null>(null);
   const renderRef = useRef<Matter.Render | null>(null);
   const currentBallRef = useRef<GameBall | null>(null);
@@ -156,8 +173,11 @@ export const GameBoardComponent: React.FC = () => {
             
             // Обновляем состояние игры
             gameManager.getState().selectedExit = exitId;
-            const question = questionManager.getQuestionByTag('general');
-            setCurrentQuestion(question);
+            
+            if (questionsLoaded && questionsData) {
+              const question = getQuestionForCurrentRound();
+              setCurrentQuestion(question);
+            }
           }
         }
       });
@@ -207,25 +227,53 @@ export const GameBoardComponent: React.FC = () => {
     Matter.Body.applyForce(ball.getBody(), ball.getBody().position, { x: randomX, y: randomY });
   };
 
+  // Получение вопроса для текущего раунда
+  const getQuestionForCurrentRound = (): Question | null => {
+    if (!questionsData || !questionsData.rounds) return null;
+    
+    const roundKey = currentRound <= 7 ? currentRound.toString() : 'va-bank';
+    const roundQuestions = questionsData.rounds[roundKey];
+    
+    if (!roundQuestions || roundQuestions.length === 0) return null;
+    
+    // Выбираем случайный вопрос из 50 вопросов раунда
+    const randomIndex = Math.floor(Math.random() * roundQuestions.length);
+    const questionData = roundQuestions[randomIndex];
+    
+    // Конвертируем в наш формат
+    const roundNumber = roundKey === 'va-bank' ? 8 : currentRound;
+    return convertToQuestion(questionData, randomIndex, roundNumber);
+  };
+
   const handleQuestionAnswer = (isCorrect: boolean) => {
     const points = gameManager.calculateExitPoints(gameManager.getState().selectedExit || 'e4');
     gameManager.updateScore(isCorrect, points);
     setScore(gameManager.getState().score);
     
-    gameManager.nextRound();
-    setCurrentRound(gameManager.getState().currentRound);
     setCurrentQuestion(null);
-
-    if (gameManager.isGameOver()) {
-      gameManager.prepareFinalRound();
+    
+    if (currentRound >= 7) {
+      // После 7 раунда - ва-банк
+      setIsVaBankRound(true);
       setFinalRoundMode(true);
+    } else {
+      gameManager.nextRound();
+      setCurrentRound(gameManager.getState().currentRound);
     }
   };
 
   const handleFinalRoundAnswer = (isCorrect: boolean) => {
-    const finalScore = gameManager.playFinalRound(isCorrect);
-    setScore(finalScore);
-    setGameOver(true);
+    if (isVaBankRound) {
+      // Ва-банк раунд - показываем вопрос
+      const vaBankQuestion = getQuestionForCurrentRound();
+      setCurrentQuestion(vaBankQuestion);
+      setIsVaBankRound(false);
+    } else {
+      // Ответ на ва-банк вопрос
+      const finalScore = gameManager.playFinalRound(isCorrect);
+      setScore(finalScore);
+      setGameOver(true);
+    }
   };
 
   const renderEntryButtons = () => {
@@ -233,7 +281,7 @@ export const GameBoardComponent: React.FC = () => {
       <button 
         key={index} 
         onClick={() => handleEntrySelect(index)}
-        disabled={currentQuestion !== null || gameOver || finalRoundMode || ballDropping}
+        disabled={currentQuestion !== null || gameOver || finalRoundMode || ballDropping || !questionsLoaded}
       >
         Вход {index + 1}
       </button>
@@ -256,7 +304,8 @@ export const GameBoardComponent: React.FC = () => {
         <>
           <div className="game-stats">
             <p>Счет: {score}</p>
-            <p>Раунд: {currentRound} / {GAME_CONFIG.exits.length}</p>
+            <p>Раунд: {currentRound} / 7 {finalRoundMode ? '(Ва-банк)' : ''}</p>
+            {!questionsLoaded && <p>Загрузка вопросов...</p>}
           </div>
           <div className="entry-buttons">
             {renderEntryButtons()}
@@ -276,10 +325,11 @@ export const GameBoardComponent: React.FC = () => {
           {currentQuestion && (
             <QuestionModal 
               question={currentQuestion} 
-              onAnswer={handleQuestionAnswer} 
+              onAnswer={isVaBankRound ? handleQuestionAnswer : (currentQuestion.type === 'text-input' ? handleFinalRoundAnswer : handleQuestionAnswer)}
+              questionManager={questionManager}
             />
           )}
-          {finalRoundMode && (
+          {finalRoundMode && !currentQuestion && (
             <QuestionModal 
               question={{
                 id: 'final-round',
@@ -290,6 +340,7 @@ export const GameBoardComponent: React.FC = () => {
                 correctIndex: 0
               }}
               onAnswer={handleFinalRoundAnswer}
+              questionManager={questionManager}
             />
           )}
         </>
