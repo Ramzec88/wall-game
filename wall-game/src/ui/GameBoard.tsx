@@ -41,6 +41,23 @@ export const GameBoardComponent: React.FC = () => {
   const [ballDropping, setBallDropping] = useState(false);
   const [isVaBankRound, setIsVaBankRound] = useState(false);
 
+  // Рефы для доступа к актуальным значениям в обработчиках Matter.js
+  const questionsLoadedRef = useRef(questionsLoaded);
+  const questionsDataRef = useRef(questionsData);
+  const currentRoundRef = useRef(currentRound);
+
+  useEffect(() => {
+    questionsLoadedRef.current = questionsLoaded;
+  }, [questionsLoaded]);
+
+  useEffect(() => {
+    questionsDataRef.current = questionsData;
+  }, [questionsData]);
+
+  useEffect(() => {
+    currentRoundRef.current = currentRound;
+  }, [currentRound]);
+
   const sceneRef = useRef<HTMLDivElement>(null);
 
   // Загрузка вопросов при старте
@@ -179,14 +196,14 @@ export const GameBoardComponent: React.FC = () => {
             
             console.log('Ball landed, questionsLoaded:', questionsLoaded, 'questionsData:', questionsData);
             
-            if (questionsLoaded && questionsData) {
+            if (questionsLoadedRef.current && questionsDataRef.current) {
               const question = getQuestionForCurrentRound();
               console.log('Generated question:', question);
               setCurrentQuestion(question);
             } else {
               console.log('Questions not loaded yet, retrying in 100ms');
               setTimeout(() => {
-                if (questionsData) {
+                if (questionsDataRef.current) {
                   const question = getQuestionForCurrentRound();
                   console.log('Generated question (delayed):', question);
                   setCurrentQuestion(question);
@@ -213,18 +230,18 @@ export const GameBoardComponent: React.FC = () => {
 
   // Получение вопроса для текущего раунда
   const getQuestionForCurrentRound = (): Question | null => {
-    console.log('getQuestionForCurrentRound called, currentRound:', currentRound);
-    console.log('questionsData:', questionsData);
+    console.log('getQuestionForCurrentRound called, currentRound:', currentRoundRef.current);
+    console.log('questionsData:', questionsDataRef.current);
     
-    if (!questionsData || !questionsData.rounds) {
+    if (!questionsDataRef.current || !questionsDataRef.current.rounds) {
       console.log('No questions data available');
       return null;
     }
     
-    const roundKey = currentRound <= 7 ? currentRound.toString() : 'va-bank';
+    const roundKey = currentRoundRef.current <= 7 ? currentRoundRef.current.toString() : 'va-bank';
     console.log('roundKey:', roundKey);
     
-    const roundQuestions = questionsData.rounds[roundKey];
+    const roundQuestions = questionsDataRef.current.rounds[roundKey];
     console.log('roundQuestions:', roundQuestions);
     
     if (!roundQuestions || roundQuestions.length === 0) {
@@ -238,7 +255,7 @@ export const GameBoardComponent: React.FC = () => {
     console.log('Selected question data:', questionData);
     
     // Конвертируем в наш формат
-    const roundNumber = roundKey === 'va-bank' ? 8 : currentRound;
+    const roundNumber = roundKey === 'va-bank' ? 8 : currentRoundRef.current;
     const convertedQuestion = convertToQuestion(questionData, randomIndex, roundNumber);
     console.log('Converted question:', convertedQuestion);
     
@@ -337,6 +354,19 @@ export const GameBoardComponent: React.FC = () => {
             <p>Счет: {score}</p>
             <p>Раунд: {currentRound} / 7 {finalRoundMode ? '(Ва-банк)' : ''}</p>
             {!questionsLoaded && <p>Загрузка вопросов...</p>}
+            <button 
+              onClick={() => {
+                console.log('Test button clicked');
+                const testQuestion = getQuestionForCurrentRound();
+                console.log('Test question:', testQuestion);
+                if (testQuestion) {
+                  setCurrentQuestion(testQuestion);
+                }
+              }}
+              style={{padding: '5px 10px', margin: '5px', fontSize: '12px'}}
+            >
+              Тест вопроса
+            </button>
           </div>
           <div className="entry-buttons">
             {renderEntryButtons()}
